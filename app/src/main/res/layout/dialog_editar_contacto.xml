@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="País:"
+        android:textStyle="bold" />
+
+    <Spinner
+        android:id="@+id/spPaisDialog"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Nombre:"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/etNombreDialog"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:hint="Nombre"
+        android:inputType="textPersonName" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Teléfono:"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/etTelefonoDialog"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:digits="0123456789"
+        android:hint="Teléfono"
+        android:inputType="phone" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Nota:"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/etNotaDialog"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Nota"
+        android:inputType="textMultiLine"
+        android:lines="2" />
+
+</LinearLayout>

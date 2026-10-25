@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Contactos App</string>
+
+    <string-array name="paises_array">
+        <item>Seleccione un país...</item>
+        <item>Honduras (+504)</item>
+        <item>Guatemala (+502)</item>
+        <item>El Salvador (+503)</item>
+        <item>Nicaragua (+505)</item>
+        <item>Costa Rica (+506)</item>
+        <item>Panamá (+507)</item>
+        <item>México (+52)</item>
+        <item>Estados Unidos (+1)</item>
+        <item>España (+34)</item>
+        <item>Colombia (+57)</item>
+    </string-array>
+</resources>
