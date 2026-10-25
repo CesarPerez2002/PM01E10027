@@ -73,7 +73,15 @@
             style="?attr/materialButtonOutlinedStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
             android:text="Compartir Contacto" />
+
+        <Button
+            android:id="@+id/btnVolver"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Volver" />
 
     </LinearLayout>
 </ScrollView>

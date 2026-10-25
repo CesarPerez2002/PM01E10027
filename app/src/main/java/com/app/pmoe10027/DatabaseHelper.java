@@ -48,7 +48,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    // 1. Método para INSERTAR un contacto
+    // guardadr contacto
     public long insertarContacto(Contactos contacto) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -63,7 +63,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return id;
     }
 
-    // 2. Método para CONSULTAR / OBTENER todos los contactos
+    // 2. obtener contactos de base de datos
     public List<Contactos> obtenerTodosContactos() {
         List<Contactos> lista = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -89,7 +89,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return lista;
     }
 
-    // 3. Método para BUSCAR un contacto por ID
+    // 3. buscar id
     public Contactos obtenerContactoPorId(int id) {
         SQLiteDatabase db = this.getReadableDatabase();
         Contactos contacto = null;
@@ -119,7 +119,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return contacto;
     }
 
-    // 4. Método para ACTUALIZAR un contacto
+    // actualiazar contactom
     public int actualizarContacto(Contactos contacto) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -140,7 +140,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return filasAfectadas;
     }
 
-    // 5. Método para ELIMINAR un contacto por ID
+    // elimianr contacto
     public int eliminarContacto(int id) {
         SQLiteDatabase db = this.getWritableDatabase();
         int filasEliminadas = db.delete(

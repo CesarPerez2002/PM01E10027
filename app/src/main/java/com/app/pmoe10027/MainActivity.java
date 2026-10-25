@@ -34,9 +34,10 @@ public class MainActivity extends AppCompatActivity {
 
     private String rutaImagenSeleccionada = "";
     private DatabaseHelper dbHelper;
-    private int contactoIdEdicion = -1; // -1 indica nuevo contacto, >=0 indica edición
+    private int contactoIdEdicion = -1;
 
-    // Lanzador para la Cámara
+    // Lanzador para la Cámara la verdad que la camara es la unica que no puedo comprabar si funciona ingeniero solo la de tomar de galeria
+    // pero como no hay  ninguna no puedo seleccionar
     private final ActivityResultLauncher<Intent> cameraLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -229,7 +230,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (contactoIdEdicion != -1) {
-            // MODO EDICIÓN: Actualizar registro existente
+            // para actualiza rcontactosd
             Contactos contactoActualizar = new Contactos(contactoIdEdicion, pais, nombre, telefono, nota, rutaImagenSeleccionada);
             int filasAfectadas = dbHelper.actualizarContacto(contactoActualizar);
 
@@ -240,7 +241,7 @@ public class MainActivity extends AppCompatActivity {
                 mostrarAlerta("Error", "No se pudo actualizar el contacto en la base de datos.");
             }
         } else {
-            // MODO NUEVO: Insertar en BD
+            // insertamos en la base de datps
             Contactos nuevoContacto = new Contactos(pais, nombre, telefono, nota, rutaImagenSeleccionada);
             long idInsertado = dbHelper.insertarContacto(nuevoContacto);
 

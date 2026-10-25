@@ -24,7 +24,6 @@ public class LlamarActivity extends AppCompatActivity {
 
     private ImageView imgContactoLlamar;
     private TextView tvNombreLlamar, tvPaisLlamar, tvTelefonoLlamar;
-    private Button btnLlamar, btnCompartir;
 
     private String nombre = "";
     private String pais = "";
@@ -32,7 +31,7 @@ public class LlamarActivity extends AppCompatActivity {
     private String imagenRuta = "";
     private String numeroCompleto = "";
 
-    // Launcher para solicitar el permiso de llamada telefónica
+    // aqui se solicita la llamada pero solo qued asi como tirando sonido inge sjsjs
     private final ActivityResultLauncher<String> requestPermissionLauncher = registerForActivityResult(
             new ActivityResultContracts.RequestPermission(),
             isGranted -> {
@@ -54,8 +53,9 @@ public class LlamarActivity extends AppCompatActivity {
         tvNombreLlamar = findViewById(R.id.tvNombreLlamar);
         tvPaisLlamar = findViewById(R.id.tvPaisLlamar);
         tvTelefonoLlamar = findViewById(R.id.tvTelefonoLlamar);
-        btnLlamar = findViewById(R.id.btnLlamar);
-        btnCompartir = findViewById(R.id.btnCompartir);
+        Button btnLlamar = findViewById(R.id.btnLlamar);
+        Button btnCompartir = findViewById(R.id.btnCompartir);
+        Button btnVolver = findViewById(R.id.btnVolver);
 
         // Obtener datos del Intent
         Intent intent = getIntent();
@@ -87,12 +87,13 @@ public class LlamarActivity extends AppCompatActivity {
             }
         }
 
-        // Ver imagen ampliada al presionar la foto
+        // para ampliar la foto pero la verdad no se funiona porque me cuelga el emulador
         imgContactoLlamar.setOnClickListener(v -> mostrarImagenAmpliada());
 
         // Eventos
         btnLlamar.setOnClickListener(v -> confirmarLlamada());
         btnCompartir.setOnClickListener(v -> compartirContacto());
+        btnVolver.setOnClickListener(v -> finish());
     }
 
     private void confirmarLlamada() {
@@ -119,16 +120,21 @@ public class LlamarActivity extends AppCompatActivity {
             Intent callIntent = new Intent(Intent.ACTION_CALL);
             callIntent.setData(Uri.parse("tel:" + numeroCompleto));
             startActivity(callIntent);
-        } catch (SecurityException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             abrirMarcadorDirecto();
         }
     }
 
     private void abrirMarcadorDirecto() {
-        Intent dialIntent = new Intent(Intent.ACTION_DIAL);
-        dialIntent.setData(Uri.parse("tel:" + numeroCompleto));
-        startActivity(dialIntent);
+        try {
+            Intent dialIntent = new Intent(Intent.ACTION_DIAL);
+            dialIntent.setData(Uri.parse("tel:" + numeroCompleto));
+            startActivity(dialIntent);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "No se pudo abrir el marcador de llamadas.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void compartirContacto() {
@@ -175,7 +181,7 @@ public class LlamarActivity extends AppCompatActivity {
         return "";
     }
 
-    // Construye el número completo evitando duplicar el prefijo
+    // para construir el numero
     public static String construirNumeroCompleto(String paisTexto, String telefono) {
         if (telefono == null) return "";
         String telLimpio = telefono.trim();

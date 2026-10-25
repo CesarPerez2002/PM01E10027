@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -28,8 +29,7 @@ public class ListaContactosActivity extends AppCompatActivity {
 
     private DatabaseHelper dbHelper;
     private List<Contactos> listaCompleta = new ArrayList<>();
-    private List<Contactos> listaFiltrada = new ArrayList<>();
-    private ContactoAdapter adapter;
+    private final List<Contactos> listaFiltrada = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,8 +41,12 @@ public class ListaContactosActivity extends AppCompatActivity {
         etBuscar = findViewById(R.id.etBuscar);
         lvContactos = findViewById(R.id.lvContactos);
         tvSinContactos = findViewById(R.id.tvSinContactos);
+        Button btnVolverLista = findViewById(R.id.btnVolverLista);
 
-        // TextWatcher para el buscador en tiempo real
+        // Botón Volver
+        btnVolverLista.setOnClickListener(v -> finish());
+
+        // Buscador en tiempo real por nombre o teléfono
         etBuscar.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -99,7 +103,7 @@ public class ListaContactosActivity extends AppCompatActivity {
             lvContactos.setVisibility(View.VISIBLE);
         }
 
-        adapter = new ContactoAdapter(this, lista, new ContactoAdapter.OnContactoListener() {
+        ContactoAdapter adapter = new ContactoAdapter(this, lista, new ContactoAdapter.OnContactoListener() {
             @Override
             public void onVerImagen(Contactos contacto) {
                 mostrarImagenAmpliada(contacto);

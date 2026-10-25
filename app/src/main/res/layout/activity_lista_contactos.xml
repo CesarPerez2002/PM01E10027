@@ -40,8 +40,17 @@
     <ListView
         android:id="@+id/lvContactos"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:divider="@null"
         android:dividerHeight="0dp" />
+
+    <Button
+        android:id="@+id/btnVolverLista"
+        style="?attr/materialButtonOutlinedStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Volver" />
 
 </LinearLayout>
