@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.InputFilter;
 import android.text.Spanned;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -33,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
 
     private String rutaImagenSeleccionada = "";
     private DatabaseHelper dbHelper;
+    private int contactoIdEdicion = -1; // -1 indica nuevo contacto, >=0 indica edición
 
     // Lanzador para la Cámara
     private final ActivityResultLauncher<Intent> cameraLauncher = registerForActivityResult(
@@ -77,10 +79,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Inicializar helper de BD
         dbHelper = new DatabaseHelper(this);
 
-        // Referenciar Vistas
         spPais = findViewById(R.id.spPais);
         etNombre = findViewById(R.id.etNombre);
         etTelefono = findViewById(R.id.etTelefono);
@@ -91,17 +91,14 @@ public class MainActivity extends AppCompatActivity {
         btnGuardar = findViewById(R.id.btnGuardar);
         btnVerContactos = findViewById(R.id.btnVerContactos);
 
-        // InputFilter para prohibir números en el campo Nombre en tiempo de escritura
-        InputFilter filtroSoloLetras = new InputFilter() {
-            @Override
-            public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
-                for (int i = start; i < end; i++) {
-                    if (Character.isDigit(source.charAt(i))) {
-                        return ""; // Bloquea los dígitos
-                    }
+        // InputFilter para prohibir números en el campo Nombre
+        InputFilter filtroSoloLetras = (source, start, end, dest, dstart, dend) -> {
+            for (int i = start; i < end; i++) {
+                if (Character.isDigit(source.charAt(i))) {
+                    return "";
                 }
-                return null; // Acepta el carácter
             }
+            return null;
         };
         etNombre.setFilters(new InputFilter[]{filtroSoloLetras});
 
@@ -113,6 +110,49 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this, ListaContactosActivity.class);
             startActivity(intent);
         });
+
+        // Verificar si viene de 'Editar' en la lista de contactos
+        comprobarModoEdicion();
+    }
+
+    private void comprobarModoEdicion() {
+        Intent intent = getIntent();
+        if (intent != null && intent.hasExtra("contacto_id")) {
+            contactoIdEdicion = intent.getIntExtra("contacto_id", -1);
+            String paisExtra = intent.getStringExtra("pais");
+            String nombreExtra = intent.getStringExtra("nombre");
+            String telefonoExtra = intent.getStringExtra("telefono");
+            String notaExtra = intent.getStringExtra("nota");
+            String imagenExtra = intent.getStringExtra("imagen");
+
+            etNombre.setText(nombreExtra);
+            etTelefono.setText(telefonoExtra);
+            etNota.setText(notaExtra);
+
+            // Seleccionar país en Spinner
+            if (paisExtra != null) {
+                ArrayAdapter<?> adapter = (ArrayAdapter<?>) spPais.getAdapter();
+                if (adapter != null) {
+                    @SuppressWarnings("unchecked")
+                    int pos = ((ArrayAdapter<String>) adapter).getPosition(paisExtra);
+                    if (pos >= 0) {
+                        spPais.setSelection(pos);
+                    }
+                }
+            }
+
+            // Cargar imagen
+            if (imagenExtra != null && !imagenExtra.isEmpty()) {
+                File imgFile = new File(imagenExtra);
+                if (imgFile.exists()) {
+                    Bitmap bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                    imgPreview.setImageBitmap(bitmap);
+                    rutaImagenSeleccionada = imagenExtra;
+                }
+            }
+
+            btnGuardar.setText("Actualizar Contacto");
+        }
     }
 
     private void abrirCamara() {
@@ -155,21 +195,20 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        // 2. Validación de Nombre (No vacío, solo letras, espacios, tildes y ñ)
+        // 2. Validación de Nombre
         if (nombre.isEmpty()) {
             etNombre.setError("El nombre es obligatorio");
             mostrarAlerta("Campo vacío", "Por favor ingrese el nombre del contacto.");
             return;
         }
 
-        // Expresión regular: letras, espacios, vocales con tilde y ñ/Ñ
         if (!nombre.matches("^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$")) {
             etNombre.setError("Nombre inválido");
-            mostrarAlerta("Nombre inválido", "El nombre solo puede contener letras, espacios, tildes y Ñ, sin números ni símbolos.");
+            mostrarAlerta("Nombre inválido", "El nombre solo puede contener letras, espacios, tildes y Ñ, sin números.");
             return;
         }
 
-        // 3. Validación de Teléfono (Solo números)
+        // 3. Validación de Teléfono
         if (telefono.isEmpty()) {
             etTelefono.setError("El teléfono es obligatorio");
             mostrarAlerta("Campo vacío", "Por favor ingrese el número de teléfono.");
@@ -189,15 +228,28 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        // Crear objeto Contactos e insertar en BD
-        Contactos nuevoContacto = new Contactos(pais, nombre, telefono, nota, rutaImagenSeleccionada);
-        long idInsertado = dbHelper.insertarContacto(nuevoContacto);
+        if (contactoIdEdicion != -1) {
+            // MODO EDICIÓN: Actualizar registro existente
+            Contactos contactoActualizar = new Contactos(contactoIdEdicion, pais, nombre, telefono, nota, rutaImagenSeleccionada);
+            int filasAfectadas = dbHelper.actualizarContacto(contactoActualizar);
 
-        if (idInsertado != -1) {
-            Toast.makeText(this, "Contacto guardado correctamente", Toast.LENGTH_LONG).show();
-            limpiarCampos();
+            if (filasAfectadas > 0) {
+                Toast.makeText(this, "Contacto actualizado correctamente", Toast.LENGTH_LONG).show();
+                finish(); // Regresa a la pantalla anterior
+            } else {
+                mostrarAlerta("Error", "No se pudo actualizar el contacto en la base de datos.");
+            }
         } else {
-            mostrarAlerta("Error", "No se pudo guardar el contacto en la base de datos.");
+            // MODO NUEVO: Insertar en BD
+            Contactos nuevoContacto = new Contactos(pais, nombre, telefono, nota, rutaImagenSeleccionada);
+            long idInsertado = dbHelper.insertarContacto(nuevoContacto);
+
+            if (idInsertado != -1) {
+                Toast.makeText(this, "Contacto guardado correctamente", Toast.LENGTH_LONG).show();
+                limpiarCampos();
+            } else {
+                mostrarAlerta("Error", "No se pudo guardar el contacto en la base de datos.");
+            }
         }
     }
 
@@ -208,6 +260,8 @@ public class MainActivity extends AppCompatActivity {
         etNota.setText("");
         imgPreview.setImageResource(android.R.drawable.ic_menu_camera);
         rutaImagenSeleccionada = "";
+        contactoIdEdicion = -1;
+        btnGuardar.setText("Guardar Contacto");
     }
 
     private void mostrarAlerta(String titulo, String mensaje) {

@@ -11,40 +11,21 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="16dp"
-        android:text="Lista de Contactos Guardados"
+        android:layout_marginBottom="12dp"
+        android:text="Lista de Contactos"
         android:textSize="20sp"
         android:textStyle="bold" />
 
-    <!-- Búsqueda por ID -->
-    <LinearLayout
+    <!-- Campo de Búsqueda por Nombre o Teléfono -->
+    <EditText
+        android:id="@+id/etBuscar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="12dp"
-        android:orientation="horizontal">
-
-        <EditText
-            android:id="@+id/etBuscarId"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:hint="Buscar por ID..."
-            android:inputType="number" />
-
-        <Button
-            android:id="@+id/btnBuscar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Buscar" />
-
-        <Button
-            android:id="@+id/btnLimpiarBusqueda"
-            style="?attr/materialButtonOutlinedStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:text="Todos" />
-    </LinearLayout>
+        android:drawableStart="@android:drawable/ic_menu_search"
+        android:drawablePadding="8dp"
+        android:hint="Buscar por nombre o teléfono..."
+        android:inputType="text" />
 
     <TextView
         android:id="@+id/tvSinContactos"
@@ -52,7 +33,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginTop="32dp"
-        android:text="No hay contactos guardados."
+        android:text="No se encontraron contactos."
         android:textSize="16sp"
         android:visibility="gone" />
 

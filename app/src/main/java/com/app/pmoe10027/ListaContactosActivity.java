@@ -1,31 +1,34 @@
 package com.app.pmoe10027;
 
 import android.app.AlertDialog;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.view.LayoutInflater;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ListaContactosActivity extends AppCompatActivity {
 
-    private EditText etBuscarId;
-    private Button btnBuscar, btnLimpiarBusqueda;
+    private EditText etBuscar;
     private ListView lvContactos;
     private TextView tvSinContactos;
 
     private DatabaseHelper dbHelper;
-    private List<Contactos> listaContactos;
+    private List<Contactos> listaCompleta = new ArrayList<>();
+    private List<Contactos> listaFiltrada = new ArrayList<>();
     private ContactoAdapter adapter;
 
     @Override
@@ -35,44 +38,56 @@ public class ListaContactosActivity extends AppCompatActivity {
 
         dbHelper = new DatabaseHelper(this);
 
-        etBuscarId = findViewById(R.id.etBuscarId);
-        btnBuscar = findViewById(R.id.btnBuscar);
-        btnLimpiarBusqueda = findViewById(R.id.btnLimpiarBusqueda);
+        etBuscar = findViewById(R.id.etBuscar);
         lvContactos = findViewById(R.id.lvContactos);
         tvSinContactos = findViewById(R.id.tvSinContactos);
 
-        cargarContactos();
+        // TextWatcher para el buscador en tiempo real
+        etBuscar.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
-        btnBuscar.setOnClickListener(v -> buscarPorId());
-        btnLimpiarBusqueda.setOnClickListener(v -> {
-            etBuscarId.setText("");
-            cargarContactos();
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filtrarContactos(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
         });
     }
 
-    private void cargarContactos() {
-        listaContactos = dbHelper.obtenerTodosContactos();
-        actualizarLista(listaContactos);
+    @Override
+    protected void onResume() {
+        super.onResume();
+        cargarContactos();
     }
 
-    private void buscarPorId() {
-        String idTexto = etBuscarId.getText().toString().trim();
-        if (idTexto.isEmpty()) {
-            Toast.makeText(this, "Ingrese un ID para buscar", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        int id = Integer.parseInt(idTexto);
-        Contactos contactoEncontrado = dbHelper.obtenerContactoPorId(id);
-
-        List<Contactos> resultado = new ArrayList<>();
-        if (contactoEncontrado != null) {
-            resultado.add(contactoEncontrado);
+    private void cargarContactos() {
+        listaCompleta = dbHelper.obtenerTodosContactos();
+        String textoBusqueda = etBuscar.getText().toString();
+        if (textoBusqueda.isEmpty()) {
+            actualizarLista(listaCompleta);
         } else {
-            Toast.makeText(this, "No se encontró ningún contacto con ID: " + id, Toast.LENGTH_SHORT).show();
+            filtrarContactos(textoBusqueda);
         }
+    }
 
-        actualizarLista(resultado);
+    private void filtrarContactos(String texto) {
+        listaFiltrada.clear();
+        String busqueda = texto.toLowerCase().trim();
+
+        if (busqueda.isEmpty()) {
+            listaFiltrada.addAll(listaCompleta);
+        } else {
+            for (Contactos c : listaCompleta) {
+                if (c.getNombre().toLowerCase().contains(busqueda) ||
+                        c.getTelefono().contains(busqueda)) {
+                    listaFiltrada.add(c);
+                }
+            }
+        }
+        actualizarLista(listaFiltrada);
     }
 
     private void actualizarLista(List<Contactos> lista) {
@@ -86,8 +101,37 @@ public class ListaContactosActivity extends AppCompatActivity {
 
         adapter = new ContactoAdapter(this, lista, new ContactoAdapter.OnContactoListener() {
             @Override
+            public void onVerImagen(Contactos contacto) {
+                mostrarImagenAmpliada(contacto);
+            }
+
+            @Override
+            public void onLlamar(Contactos contacto) {
+                Intent intent = new Intent(ListaContactosActivity.this, LlamarActivity.class);
+                intent.putExtra("contacto_id", contacto.getId());
+                intent.putExtra("nombre", contacto.getNombre());
+                intent.putExtra("pais", contacto.getPais());
+                intent.putExtra("telefono", contacto.getTelefono());
+                intent.putExtra("imagen", contacto.getImagen());
+                startActivity(intent);
+            }
+
+            @Override
+            public void onCompartir(Contactos contacto) {
+                compartirContacto(contacto);
+            }
+
+            @Override
             public void onEditar(Contactos contacto) {
-                mostrarDialogoEditar(contacto);
+                // Carga los datos en el formulario de registro de MainActivity
+                Intent intent = new Intent(ListaContactosActivity.this, MainActivity.class);
+                intent.putExtra("contacto_id", contacto.getId());
+                intent.putExtra("pais", contacto.getPais());
+                intent.putExtra("nombre", contacto.getNombre());
+                intent.putExtra("telefono", contacto.getTelefono());
+                intent.putExtra("nota", contacto.getNota());
+                intent.putExtra("imagen", contacto.getImagen());
+                startActivity(intent);
             }
 
             @Override
@@ -97,6 +141,42 @@ public class ListaContactosActivity extends AppCompatActivity {
         });
 
         lvContactos.setAdapter(adapter);
+    }
+
+    private void mostrarImagenAmpliada(Contactos contacto) {
+        if (contacto.getImagen() == null || contacto.getImagen().isEmpty()) {
+            Toast.makeText(this, "El contacto no tiene fotografía guardada.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        File imgFile = new File(contacto.getImagen());
+        if (!imgFile.exists()) {
+            Toast.makeText(this, "No se encontró el archivo de la imagen.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Bitmap bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+        ImageView imageView = new ImageView(this);
+        imageView.setImageBitmap(bitmap);
+        imageView.setAdjustViewBounds(true);
+        imageView.setPadding(20, 20, 20, 20);
+
+        new AlertDialog.Builder(this)
+                .setTitle("Fotografía: " + contacto.getNombre())
+                .setView(imageView)
+                .setPositiveButton("Cerrar", null)
+                .show();
+    }
+
+    private void compartirContacto(Contactos contacto) {
+        String numeroCompleto = LlamarActivity.construirNumeroCompleto(contacto.getPais(), contacto.getTelefono());
+        String mensaje = "Contacto: " + contacto.getNombre() + "\nTeléfono: " + numeroCompleto;
+
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, mensaje);
+
+        startActivity(Intent.createChooser(shareIntent, "Compartir contacto vía"));
     }
 
     private void confirmarEliminacion(Contactos contacto) {
@@ -112,79 +192,7 @@ public class ListaContactosActivity extends AppCompatActivity {
                         Toast.makeText(ListaContactosActivity.this, "Error al eliminar contacto", Toast.LENGTH_SHORT).show();
                     }
                 })
-                .setNegativeButton("Cancelar", null)
+                .setNegativeButton("No", null)
                 .show();
-    }
-
-    private void mostrarDialogoEditar(Contactos contacto) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_editar_contacto, null);
-        builder.setView(dialogView);
-
-        Spinner spPaisDialog = dialogView.findViewById(R.id.spPaisDialog);
-        EditText etNombreDialog = dialogView.findViewById(R.id.etNombreDialog);
-        EditText etTelefonoDialog = dialogView.findViewById(R.id.etTelefonoDialog);
-        EditText etNotaDialog = dialogView.findViewById(R.id.etNotaDialog);
-
-        // Llenar datos actuales
-        etNombreDialog.setText(contacto.getNombre());
-        etTelefonoDialog.setText(contacto.getTelefono());
-        etNotaDialog.setText(contacto.getNota());
-
-        // Seleccionar país en el Spinner
-        ArrayAdapter<CharSequence> adapterPaises = ArrayAdapter.createFromResource(
-                this, R.array.paises_array, android.R.layout.simple_spinner_item);
-        adapterPaises.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spPaisDialog.setAdapter(adapterPaises);
-
-        int posPais = adapterPaises.getPosition(contacto.getPais());
-        if (posPais >= 0) {
-            spPaisDialog.setSelection(posPais);
-        }
-
-        builder.setTitle("Editar Contacto ID: " + contacto.getId());
-        builder.setPositiveButton("Actualizar", (dialog, which) -> {
-            String nuevoPais = spPaisDialog.getSelectedItem().toString();
-            int posSeleccionada = spPaisDialog.getSelectedItemPosition();
-            String nuevoNombre = etNombreDialog.getText().toString().trim();
-            String nuevoTelefono = etTelefonoDialog.getText().toString().trim();
-            String nuevaNota = etNotaDialog.getText().toString().trim();
-
-            if (posSeleccionada == 0) {
-                Toast.makeText(ListaContactosActivity.this, "Debe seleccionar un país válido", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            if (nuevoNombre.isEmpty() || !nuevoNombre.matches("^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$")) {
-                Toast.makeText(ListaContactosActivity.this, "Nombre inválido o vacío", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            if (nuevoTelefono.isEmpty() || !nuevoTelefono.matches("^[0-9]+$")) {
-                Toast.makeText(ListaContactosActivity.this, "Teléfono inválido o vacío", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            if (nuevaNota.isEmpty()) {
-                Toast.makeText(ListaContactosActivity.this, "La nota es obligatoria", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            contacto.setPais(nuevoPais);
-            contacto.setNombre(nuevoNombre);
-            contacto.setTelefono(nuevoTelefono);
-            contacto.setNota(nuevaNota);
-
-            int filas = dbHelper.actualizarContacto(contacto);
-            if (filas > 0) {
-                Toast.makeText(ListaContactosActivity.this, "Contacto actualizado correctamente", Toast.LENGTH_SHORT).show();
-                cargarContactos();
-            } else {
-                Toast.makeText(ListaContactosActivity.this, "Error al actualizar contacto", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        builder.setNegativeButton("Cancelar", null);
-        builder.show();
     }
 }

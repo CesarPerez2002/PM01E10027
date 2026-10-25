@@ -24,6 +24,9 @@ public class ContactoAdapter extends ArrayAdapter<Contactos> {
     private final OnContactoListener listener;
 
     public interface OnContactoListener {
+        void onVerImagen(Contactos contacto);
+        void onLlamar(Contactos contacto);
+        void onCompartir(Contactos contacto);
         void onEditar(Contactos contacto);
         void onEliminar(Contactos contacto);
     }
@@ -48,10 +51,12 @@ public class ContactoAdapter extends ArrayAdapter<Contactos> {
         TextView tvNombreItem = convertView.findViewById(R.id.tvNombreItem);
         TextView tvTelefonoPaisItem = convertView.findViewById(R.id.tvTelefonoPaisItem);
         TextView tvNotaItem = convertView.findViewById(R.id.tvNotaItem);
+        Button btnLlamarItem = convertView.findViewById(R.id.btnLlamarItem);
+        Button btnCompartirItem = convertView.findViewById(R.id.btnCompartirItem);
         Button btnEditarItem = convertView.findViewById(R.id.btnEditarItem);
         Button btnEliminarItem = convertView.findViewById(R.id.btnEliminarItem);
 
-        tvNombreItem.setText(contacto.getId() + ". " + contacto.getNombre());
+        tvNombreItem.setText(contacto.getNombre());
         tvTelefonoPaisItem.setText(contacto.getPais() + " | " + contacto.getTelefono());
         tvNotaItem.setText("Nota: " + contacto.getNota());
 
@@ -67,6 +72,25 @@ public class ContactoAdapter extends ArrayAdapter<Contactos> {
         } else {
             imgContactoItem.setImageResource(android.R.drawable.ic_menu_camera);
         }
+
+        // Eventos
+        imgContactoItem.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onVerImagen(contacto);
+            }
+        });
+
+        btnLlamarItem.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onLlamar(contacto);
+            }
+        });
+
+        btnCompartirItem.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onCompartir(contacto);
+            }
+        });
 
         btnEditarItem.setOnClickListener(v -> {
             if (listener != null) {

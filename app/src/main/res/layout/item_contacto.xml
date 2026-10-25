@@ -13,10 +13,12 @@
 
         <ImageView
             android:id="@+id/imgContactoItem"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
             android:background="#E0E0E0"
-            android:contentDescription="Imagen contacto"
+            android:clickable="true"
+            android:contentDescription="Fotografía del contacto"
+            android:focusable="true"
             android:scaleType="centerCrop"
             android:src="@android:drawable/ic_menu_camera" />
 
@@ -39,8 +41,8 @@
                 android:id="@+id/tvTelefonoPaisItem"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Honduras (+504) - 99999999"
-                android:textColor="#555555"
+                android:text="Honduras (+504) | 99999999"
+                android:textColor="#333333"
                 android:textSize="14sp" />
 
             <TextView
@@ -48,7 +50,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Nota de contacto"
-                android:textColor="#777777"
+                android:textColor="#666666"
                 android:textSize="13sp" />
         </LinearLayout>
     </LinearLayout>
@@ -61,11 +63,26 @@
         android:orientation="horizontal">
 
         <Button
+            android:id="@+id/btnLlamarItem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
+            android:text="Llamar" />
+
+        <Button
+            android:id="@+id/btnCompartirItem"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
+            android:text="Compartir" />
+
+        <Button
             android:id="@+id/btnEditarItem"
             style="?attr/materialButtonOutlinedStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
+            android:layout_marginEnd="4dp"
             android:text="Editar" />
 
         <Button
